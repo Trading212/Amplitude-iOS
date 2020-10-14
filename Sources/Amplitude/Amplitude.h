@@ -31,6 +31,13 @@ NS_ASSUME_NONNULL_BEGIN
 typedef NSString *_Nonnull (^AMPAdSupportBlock)(void);
 typedef NSDictionary *_Nullable (^AMPLocationInfoBlock)(void);
 
+typedef NS_OPTIONS(NSUInteger, AMPSessionEvents) {
+    AMPSessionEventsStart = 1 << 0,
+    AMPSessionEventsEnd = 1 << 1,
+    
+    AMPSessionEventsBoth = (AMPSessionEventsStart | AMPSessionEventsEnd)
+};
+
 /**
  Amplitude iOS SDK.
 
@@ -64,13 +71,21 @@ typedef NSDictionary *_Nullable (^AMPLocationInfoBlock)(void);
 
 /**
  Identifier for the current user.
+ 
+ @note If your app has its own login system that you want to track users with, you can set the userId.
+ 
+ @see [Setting Custom UserIds](https://github.com/amplitude/Amplitude-iOS#setting-custom-user-ids)
  */
-@property (nonatomic, copy, readonly, nullable) NSString *userId;
+@property (nonatomic, copy, nullable) NSString *userId;
 
 /**
  Identifier for the current device.
+ 
+ @note @b Not @b recommended @b to @b set @b unless @b you @b know @b what @b you @b are @b doing
+
+ @see [Setting Custom Device Ids](https://github.com/amplitude/Amplitude-iOS#custom-device-ids)
  */
-@property (nonatomic, copy, readonly) NSString *deviceId;
+@property (nonatomic, copy) NSString *deviceId;
 
 /**
  Name of the SDK instance (ex: no name for default instance, or custom name for a named instance)
@@ -125,7 +140,7 @@ typedef NSDictionary *_Nullable (^AMPLocationInfoBlock)(void);
 /**
  Whether to automatically log start and end session events corresponding to the start and end of a user's session.
  */
-@property (nonatomic, assign) BOOL trackingSessionEvents;
+@property (nonatomic, assign) AMPSessionEvents trackedSessionEvents;
 
 /**
  Library name is default as `amplitude-ios`.
@@ -541,14 +556,6 @@ typedef NSDictionary *_Nullable (^AMPLocationInfoBlock)(void);
  */
 
 /**
- Sets the userId.
- @param userId                  If your app has its own login system that you want to track users with, you can set the userId.
- @see [Setting Custom UserIds](https://github.com/amplitude/Amplitude-iOS#setting-custom-user-ids)
- */
-
-- (void)setUserId:(nullable NSString *)userId;
-
-/**
  Sets the userId and starts a new session. The previous session for the previous user will be terminated and a new session will begin for the new user id.
 
  @param userId                  If your app has its own login system that you want to track users with, you can set the userId.
@@ -556,17 +563,6 @@ typedef NSDictionary *_Nullable (^AMPLocationInfoBlock)(void);
  @see [Setting Custom UserIds](https://github.com/amplitude/Amplitude-iOS#setting-custom-user-ids)
  */
 - (void)setUserId:(nullable NSString *)userId startNewSession:(BOOL)startNewSession;
-
-/**
- Sets the deviceId.
-
- **NOTE: not recommended unless you know what you are doing**
-
- @param deviceId                  If your app has its own system for tracking devices, you can set the deviceId.
-
- @see [Setting Custom Device Ids](https://github.com/amplitude/Amplitude-iOS#custom-device-ids)
- */
-- (void)setDeviceId:(NSString *)deviceId;
 
 /**-----------------------------------------------------------------------------
  * @name Configuring the SDK instance

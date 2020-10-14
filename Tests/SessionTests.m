@@ -162,7 +162,7 @@
     id mockAmplitude = [OCMockObject partialMockForObject:self.amplitude];
     NSDate *date = [NSDate dateWithTimeIntervalSince1970:1000];
     [(Amplitude *)[[mockAmplitude expect] andReturnValue:OCMOCK_VALUE(date)] currentTime];
-    [mockAmplitude setTrackingSessionEvents:YES];
+    [mockAmplitude setTrackedSessionEvents:AMPSessionEventsBoth];
 
     [mockAmplitude initializeApiKey:apiKey userId:nil];
     [mockAmplitude flushQueueWithQueue:[mockAmplitude initializerQueue]];
@@ -216,7 +216,7 @@
     id mockAmplitude = [OCMockObject partialMockForObject:self.amplitude];
     NSDate *date = [NSDate dateWithTimeIntervalSince1970:21474836470];
     [(Amplitude *)[[mockAmplitude expect] andReturnValue:OCMOCK_VALUE(date)] currentTime];
-    [mockAmplitude setTrackingSessionEvents:YES];
+    [mockAmplitude setTrackedSessionEvents:AMPSessionEventsBoth];
 
     [mockAmplitude initializeApiKey:apiKey userId:nil];
     [mockAmplitude flushQueueWithQueue:[mockAmplitude initializerQueue]];
@@ -253,7 +253,7 @@
     NSNumber *timestamp = [NSNumber numberWithLongLong:[date timeIntervalSince1970] * 1000];
     [dbHelper insertOrReplaceKeyLongValue:@"previous_session_id" value:timestamp];
 
-    self.amplitude.trackingSessionEvents = YES;
+    [self.amplitude setTrackedSessionEvents:AMPSessionEventsBoth];
     [self.amplitude initializeApiKey:apiKey userId:nil];
 
     [self.amplitude flushQueue];
@@ -261,6 +261,22 @@
     NSArray *events = [dbHelper getEvents:-1 limit:2];
     XCTAssertEqualObjects(events[0][@"event_type"], kAMPSessionEndEvent);
     XCTAssertEqualObjects(events[1][@"event_type"], kAMPSessionStartEvent);
+}
+
+- (void)testStartSessionOnlyEvents {
+    AMPDatabaseHelper *dbHelper = [AMPDatabaseHelper getDatabaseHelper];
+
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:1000];
+    NSNumber *timestamp = [NSNumber numberWithLongLong:[date timeIntervalSince1970] * 1000];
+    [dbHelper insertOrReplaceKeyLongValue:@"previous_session_id" value:timestamp];
+
+    [self.amplitude setTrackedSessionEvents:AMPSessionEventsStart];
+    [self.amplitude initializeApiKey:apiKey userId:nil];
+
+    [self.amplitude flushQueue];
+    XCTAssertEqual([dbHelper getEventCount], 1);
+    NSArray *events = [dbHelper getEvents:-1 limit:1];
+    XCTAssertEqualObjects(events[0][@"event_type"], kAMPSessionStartEvent);
 }
 
 @end

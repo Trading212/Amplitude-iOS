@@ -92,8 +92,8 @@
 #endif
 @end
 
-NSString *const kAMPSessionStartEvent = @"session_start";
-NSString *const kAMPSessionEndEvent = @"session_end";
+NSString *const kAMPSessionStartEvent = @"session-start";
+NSString *const kAMPSessionEndEvent = @"session-end";
 NSString *const kAMPRevenueEvent = @"revenue_amount";
 
 static NSString *const BACKGROUND_QUEUE_NAME = @"BACKGROUND";
@@ -560,8 +560,8 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
             return;
         }
 
-        // skip session check if logging start_session or end_session events
-        BOOL loggingSessionEvent = self->_trackingSessionEvents && ([eventType isEqualToString:kAMPSessionStartEvent] || [eventType isEqualToString:kAMPSessionEndEvent]);
+        // skip session check if logging start-session or end-session events
+        BOOL loggingSessionEvent = self.trackedSessionEvents > 0 && ([eventType isEqualToString:kAMPSessionStartEvent] || [eventType isEqualToString:kAMPSessionEndEvent]);
         if (!loggingSessionEvent && !outOfSession) {
             [self startOrContinueSessionNSNumber:timestamp];
         }
@@ -1140,12 +1140,12 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
 }
 
 - (void)startNewSession:(NSNumber*)timestamp {
-    if (_trackingSessionEvents) {
+    if (self.trackedSessionEvents & AMPSessionEventsEnd) {
         [self sendSessionEvent:kAMPSessionEndEvent];
     }
     [self setSessionId:[timestamp longLongValue]];
     [self refreshSessionTime:timestamp];
-    if (_trackingSessionEvents) {
+    if (self.trackedSessionEvents & AMPSessionEventsStart) {
         [self sendSessionEvent:kAMPSessionStartEvent];
     }
 }
@@ -1335,7 +1335,7 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
     }
 
     [self runOnBackgroundQueue:^{
-        if (startNewSession && self->_trackingSessionEvents) {
+        if (startNewSession && (self.trackedSessionEvents & AMPSessionEventsEnd)) {
             [self sendSessionEvent:kAMPSessionEndEvent];
         }
 
@@ -1346,7 +1346,7 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
             NSNumber* timestamp = [NSNumber numberWithLongLong:[[self currentTime] timeIntervalSince1970] * 1000];
             [self setSessionId:[timestamp longLongValue]];
             [self refreshSessionTime:timestamp];
-            if (self->_trackingSessionEvents) {
+            if (self.trackedSessionEvents & AMPSessionEventsStart) {
                 [self sendSessionEvent:kAMPSessionStartEvent];
             }
         }
