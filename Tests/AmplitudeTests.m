@@ -116,7 +116,7 @@
     [oldDbHelper addIdentify:@"{\"event_type\":\"$identify\"}"];
     [oldDbHelper addIdentify:@"{\"event_type\":\"$identify\"}"];
 
-    [[Amplitude instance] setDeviceId:@"oldDeviceId"];
+    [[Amplitude instance] setNewDeviceId:@"oldDeviceId"];
     [[Amplitude instance] flushQueue];
     XCTAssertEqualObjects([oldDbHelper getValue:@"device_id"], @"oldDeviceId");
     XCTAssertEqualObjects([[Amplitude instance] getDeviceId], @"oldDeviceId");
@@ -153,7 +153,7 @@
     XCTAssertEqual([oldDbHelper getIdentifyCount], 2);
 
     // verify both apps can modify database independently and not affect old database
-    [[Amplitude instanceWithName:newInstance1] setDeviceId:@"fakeDeviceId"];
+    [[Amplitude instanceWithName:newInstance1] setNewDeviceId:@"fakeDeviceId"];
     [[Amplitude instanceWithName:newInstance1] flushQueue];
     XCTAssertEqualObjects([newDBHelper1 getValue:@"device_id"], @"fakeDeviceId");
     XCTAssertNotEqualObjects([newDBHelper2 getValue:@"device_id"], @"fakeDeviceId");
@@ -163,7 +163,7 @@
     XCTAssertEqual([newDBHelper2 getIdentifyCount], 0);
     XCTAssertEqual([oldDbHelper getIdentifyCount], 2);
 
-    [[Amplitude instanceWithName:newInstance2] setDeviceId:@"brandNewDeviceId"];
+    [[Amplitude instanceWithName:newInstance2] setNewDeviceId:@"brandNewDeviceId"];
     [[Amplitude instanceWithName:newInstance2] flushQueue];
     XCTAssertEqualObjects([newDBHelper1 getValue:@"device_id"], @"fakeDeviceId");
     XCTAssertEqualObjects([newDBHelper2 getValue:@"device_id"], @"brandNewDeviceId");
@@ -230,7 +230,7 @@
     XCTAssertEqual([self.amplitude userId], nil);
 
     NSString *testUserId = @"testUserId";
-    [self.amplitude setUserId:testUserId];
+    [self.amplitude setNewUserId:testUserId];
     [self.amplitude flushQueue];
     XCTAssertEqual([self.amplitude userId], testUserId);
     [self.amplitude logEvent:@"test"];
@@ -239,7 +239,7 @@
     XCTAssert([[event1 objectForKey:@"user_id"] isEqualToString:testUserId]);
 
     NSString *nilUserId = nil;
-    [self.amplitude setUserId:nilUserId];
+    [self.amplitude setNewUserId:nilUserId];
     [self.amplitude flushQueue];
     XCTAssertEqual([self.amplitude userId], nilUserId);
     [self.amplitude logEvent:@"test"];

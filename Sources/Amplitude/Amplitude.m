@@ -422,9 +422,9 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
             self->_deviceInfo = [[AMPDeviceInfo alloc] init];
             [self initializeDeviceId];
             if (setUserId) {
-                [self setUserId:userId];
+                [self setNewUserId:userId];
             } else {
-                self.userId = [self.dbHelper getValue:USER_ID];
+                _userId = [self.dbHelper getValue:USER_ID];
             }
         }];
 
@@ -1325,12 +1325,12 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
     _apiPropertiesTrackingOptions = [_appliedTrackingOptions getApiPropertiesTrackingOption];
 }
 
-- (void)setUserId:(NSString*)userId {
-    [self setUserId:userId startNewSession:NO];
+- (void)setNewUserId:(NSString*)userId {
+    [self setNewUserId:userId startNewSession:NO];
 }
 
-- (void)setUserId:(NSString*) userId startNewSession:(BOOL)startNewSession {
-    if (!(userId == nil || [self isArgument:userId validType:[NSString class] methodName:@"setUserId:"])) {
+- (void)setNewUserId:(NSString*) userId startNewSession:(BOOL)startNewSession {
+    if (!(userId == nil || [self isArgument:userId validType:[NSString class] methodName:@"setNewUserId:"])) {
         return;
     }
 
@@ -1393,7 +1393,7 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
     return [[self.dbHelper getLongValue:OPT_OUT] boolValue];
 }
 
-- (void)setDeviceId:(NSString*)deviceId {
+- (void)setNewDeviceId:(NSString*)deviceId {
     if (![self isValidDeviceId:deviceId]) {
         return;
     }
@@ -1406,7 +1406,7 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
 
 - (void)regenerateDeviceId {
     [self runOnBackgroundQueue:^{
-        [self setDeviceId:[AMPDeviceInfo generateUUID]];
+        [self setNewDeviceId:[AMPDeviceInfo generateUUID]];
     }];
 }
 
@@ -1437,9 +1437,9 @@ static NSString *const SEQUENCE_NUMBER = @"sequence_number";
 
 - (NSString*)initializeDeviceId {
     if (self.deviceId == nil) {
-        self.deviceId = [self.dbHelper getValue:DEVICE_ID];
+        _deviceId = [self.dbHelper getValue:DEVICE_ID];
         if (![self isValidDeviceId:self.deviceId]) {
-            self.deviceId = [self _getDeviceId];
+            _deviceId = [self _getDeviceId];
             [self.dbHelper insertOrReplaceKeyValue:DEVICE_ID value:self.deviceId];
         }
     }
